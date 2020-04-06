@@ -1,0 +1,282 @@
+---
+title: "Data Visualization"
+output: html_document
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(lubridate)
+```
+
+## Introduction
+
+In this tutorial, we will play around with the [John Hopkins CSSE Covid-19 dataset](https://github.com/CSSEGISandData/COVID-19).
+We will learn basic data wrangling with `tidyverse` packages and data visualization with `ggplot2`.
+There is no pre-requisites for this tutorial, but having a basic knowledge about `R`, `RStudio`, and `Rmarkdown` would be useful.
+
+## Download and explore data
+```{r data}
+data_raw <- read_csv("https://github.com/CSSEGISandData/COVID-19/raw/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv")
+
+head(data_raw)
+
+```
+
+## Data wrangling
+
+Like any other data analysis task, first we need to clean and restructure our data.
+
+Here we will use some function from `tidyverse` package to format our data.
+
+_Note_: the `!!` (bang bang) operator is a syntatic sugar for [unqouting code](https://tidyeval.tidyverse.org/sec-why-how.html#unquoting-code)
+
+### Renaming and aggregating data
+To do analysis by country, first we need to aggregate data on country's province / state
+
+```{r aggregate}
+date_start <- colnames(data_raw)[5]
+date_end <- colnames(data_raw)[ncol(data_raw)]
+
+# Rename column names
+data <- data_raw %>% 
+  rename(country = `Country/Region`, area = `Province/State`) %>% 
+  # aggregate data per country
+  group_by(country) %>% 
+  summarise_at(vars(!!date_start:!!date_end), sum)
+
+head(data)
+```
+
+### Pick countries to highlight
+Next we want to highlight some countries with the most number of cases in the last day, and perhaps add some additional countries
+
+```{r top_countries}
+data <- data %>% 
+  # arrange country by total number of cases in the last day 
+  arrange(desc(!!as.symbol(date_end)))
+
+# Find top 10 countries with most cases
+top_countries <- data$country[1:10]
+
+# Optional (add additional countries)
+top_countries <-
+  c(top_countries, "Korea, South", "Singapore", "Brazil", "South Africa")
+
+data_top_countries <- data %>% 
+  filter(country %in% top_countries)
+```
+
+### Transposing data
+`ggplot2` implements [_A layered grammar of graphics_](https://vita.had.co.nz/papers/layered-grammar.html) framework for data visualization which requires data values to be mapped onto _aesthetics_ (quantifiable features of the resulting graphic).
+
+To do this, we want to transpose the date variables in our data into a single column so that we can represent our data in an `x,y` coordinate, with `x` being the time and `y` being the number of cases.
+
+```{r data_transpose}
+data_long <- data_top_countries %>% 
+  pivot_longer(cols = !!date_start:!!date_end,
+               names_to = "date",
+               values_to = "N") %>% 
+  # reformat date
+  mutate(date = mdy(date))
+
+head(data_long)
+```
+
+### Count day after first N case
+As countries may be at different phases of the outbreak at a certain date,
+we want to convert the date into _day after first N reported cases_
+so our results are more comparable.
+
+```{r count_day}
+min_N <- 100
+
+data_plot <- data_long %>% 
+  filter(N >= min_N) %>% 
+  # group by country
+  group_by(country) %>% 
+  mutate(day = seq_along(date))
+
+head(data_plot)
+```
+
+## Plotting
+It's often helpful to break down the task into small steps, for example:
+
+* What do we want to see?
+    * We want to see how the number of cases changes over time - a time-series line / scatter plot would be appropriate
+    * We also want to compare between-country difference, so we would need to generate one plot for each country
+
+* What are the plot elements?
+    * X axis: Period of time (i.e. number of days after first N cases)
+    * Y axis: Number of cases
+    * Color: each country will have a different color
+    * Label: each country will have a different label at the latest recorded day
+    
+* Anything else?
+    * We know that the case growth is likely to be exponential, so we may want the Y-axis in a log scale
+    * We want to label the plot
+    * We may want to put some extra icing on our plot cake :)
+    
+Now that we have a plan, it's time to get back to work!
+
+```{r plot}
+ggplot(
+  data = data_plot,
+  mapping = aes(
+    x = day,
+    y = N,
+    color = country,
+    label = country,
+    group = country)
+  ) +
+  # create line chart
+  geom_line() +
+  # create scatter plot
+  geom_point() +
+  # add country label
+  geom_text(data = . %>% group_by(country) %>% filter(day == max(day))) +
+  scale_y_continuous(trans = "log2")
+
+```
+
+### Decorating the plot
+```{r decorate}
+## Take 2
+ggplot(
+  # cut until day 50
+  data = data_plot %>% filter(day <= 50),
+  mapping = aes(
+    x = day,
+    y = N,
+    color = country,
+    label = country,
+    group = country)
+  ) +
+  # make the line and point smaller
+  geom_line(size = 0.4, show.legend = F) +
+  geom_point(size = 0.3) +
+  # add country label
+  geom_text(data = . %>% group_by(country) %>% filter(day == max(day)),
+            # adjust label position
+            hjust = 0, nudge_x = 0.5,
+            # make smaller text
+            size = 3
+            ) +
+  # Y-axis
+  scale_y_continuous(
+    trans = "log2",
+    # adjust breaks
+    breaks = c(c(1,2,5)%o% 10^(0:5)),
+    # format breaks
+    labels = scales::number_format(accuracy = 1)
+    ) +
+  # X-Axis
+  scale_x_continuous(
+    breaks = seq(0,100,10)
+  ) +
+  # Change X-Axis, Y-Axis, Title label
+  labs(
+    title = "Covid-19 cumulative number of cases",
+    y = "Number of cases",
+    x = paste("Day after first", min_N, "cases")
+  ) +
+  # Turn off clipping
+  coord_cartesian(clip = "off") +
+  # change overall looks
+  theme_minimal(base_size = 10) +
+  # change background 
+  theme(
+    # hide legend
+    legend.position = "none",
+    # adjust plot margin
+    plot.margin = margin(t=5, r=20, b= 5, l =5),
+    # adjust title
+    plot.title = element_text(face = "bold", size = 12)
+  )
+
+  
+```
+
+### Extra touch
+```{r extra}
+library(hrbrthemes)
+library(ggrepel)
+library(ggthemes)
+
+ggplot(
+  # cut until day 50
+  data = data_plot %>% filter(day <= 50),
+  mapping = aes(
+    x = day,
+    y = N,
+    color = country,
+    label = country,
+    group = country,
+    fill = country)
+  ) +
+  # make the line and point smaller
+  geom_line(size = 0.4, show.legend = F) +
+  geom_point(size = 0.3) +
+  # add country label
+  geom_label_repel(
+    data = . %>% group_by(country) %>% filter(day == max(day)),
+    # adjust label position
+    hjust = 0, nudge_x = 0.5,
+    colour = "white", alpha = 0.95,
+    segment.size = 0.2, segment.color = "gray20",
+    # make smaller text
+    size = 3 ) +
+  # highlight last day
+  geom_point(
+    data = . %>% filter(day == max(day)),
+    shape = 23, size = 1.1) +
+  # change colour
+  scale_colour_tableau(palette = "Tableau 20") +
+  scale_fill_tableau(palette = "Tableau 20") +
+  # Y-axis
+  scale_y_continuous(
+    trans = "log2",
+    # adjust breaks
+    breaks = c(c(1,2,5)%o% 10^(0:5)),
+    # format breaks
+    labels = scales::number_format(accuracy = 1),
+    ) +
+  # X-Axis
+  scale_x_continuous(
+    breaks = seq(0,100,10)
+  ) +
+  # Change X-Axis, Y-Axis, Title label
+  labs(
+    title = "Covid-19 cumulative number of cases",
+    y = "Number of cases",
+    x = paste("Day after first", min_N, "cases")
+  ) +
+  # Turn off clipping
+  coord_cartesian(clip = "off") +
+  # change overall looks
+  theme_ipsum(base_size = 10) +
+  # change background 
+  theme(
+    # hide legend
+    legend.position = "none",
+    # adjust plot margin
+    plot.margin = margin(t=5, r=20, b= 5, l =5),
+    # remove minor grid
+    panel.grid.minor = element_blank(),
+    # adjust title
+    text = element_text(color = "grey23"),
+    plot.title = element_text(face = "bold", size = 16),
+    axis.title = element_text(face = "bold"),
+    plot.background = element_rect(fill = "#fff1e5")
+  )
+
+```
+
+### Saving plots
+```{r save}
+ggsave("my_beautiful_plot.png",
+       width = 8,
+       height = 5)
+```
