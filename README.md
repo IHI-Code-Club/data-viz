@@ -1,8 +1,23 @@
 # Data Visualization
 #### Part of IHI Code Club Workshop Series
 
-In this tutorial we will learn how to
+|                      |                                                                                                         |
+|----------------------|---------------------------------------------------------------------------------------------------------|
+| Topic                | Data visualization                                                                                      |
+| Objectives           | Learn data visualization with `ggplot2` and basic data wrangling with `tidyverse`                       |
+| Dataset              | The [John Hopkins CSSE Covid-19 dataset](https://github.com/CSSEGISandData/COVID-19).                   |
+| Language             | R                                                                                                       |
+| Libraries [OPTIONAL] | `tidyverse_1.3.0`, `lubridate_1.7.4`, `[ggthemes_4.2.0]`, `[ggrepel_0.8.0.9000]`, `[hrbrthemes_0.6.0]`  |
+| Level                | Beginner to Intermediate                                                                                |
+| Pre-requisites       | Basic familiarity with `R`, `RStudio`, and `RMarkdown`                                                  |
 
+### Structure
+We will do a live, interactive coding workshop to learn how to create the following plot:
+
+![](workspace/my_beautiful_plot.png)
+
+Instructions are provided in `workspace/data-vis.Rmd` (Rmarkdown file)
+and `workspace/data-vis.html` (pre-rendered HTML file - download the raw and open in a web browser to see)
 
 ### Launch Binder
 
@@ -10,6 +25,7 @@ Please click the following button if you like to use a web version of JupyterLab
 
 [![Binder-JupyterLab](https://img.shields.io/badge/binder-JupyterLab-orange)](https://mybinder.org/v2/gh/IHI-Code-Club/data-viz/binder?urlpath=lab)
 [![Binder-RStudio](https://img.shields.io/badge/binder-RStudio-blue)](https://mybinder.org/v2/gh/IHI-Code-Club/Rmarkdown/data-viz?urlpath=rstudio)
+
 
 ---
 
