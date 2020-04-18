@@ -46,15 +46,11 @@ _Note_: the `!!` (bang bang) operator is a syntatic sugar for [unqouting code](h
 To do analysis by country, first we need to aggregate data on country's province / state
 
 ```{r aggregate}
-date_start <- colnames(data_raw)[5]
-date_end <- colnames(data_raw)[ncol(data_raw)]
+date_start <- NULL
+date_end <- NULL
 
 # Rename column names
-data <- data_raw %>% 
-  rename(country = `Country/Region`, area = `Province/State`) %>% 
-  # aggregate data per country
-  group_by(country) %>% 
-  summarise_at(vars(!!date_start:!!date_end), sum)
+data <- NULL
 
 head(data)
 ```
@@ -64,19 +60,16 @@ Next we want to highlight some countries with the most number of cases in the la
 
 ```{r top_countries}
 # arrange country by total number of cases in the last day 
-data <- data %>% 
-  arrange(desc(!!as.symbol(date_end)))
+data <- NULL
 
 # Find top 10 countries with most cases
-top_countries <- data$country[1:10]
+top_countries <- NULL
 
 # Optional (add additional countries)
-top_countries <-
-  c(top_countries, "Korea, South", "Singapore", "Brazil", "South Africa")
+top_countries <- NULL
 
 # Subset data to include only selected countries
-data_top_countries <- data %>% 
-  filter(country %in% top_countries)
+data_top_countries <- NULL
 ```
 
 ### Transposing data
@@ -85,12 +78,9 @@ data_top_countries <- data %>%
 To do this, we want to transpose the date variables in our data into a single column so that we can represent our data in an `x,y` coordinate, with `x` being the time and `y` being the number of cases.
 
 ```{r data_transpose}
-data_long <- data_top_countries %>% 
-  pivot_longer(cols = !!date_start:!!date_end,
-               names_to = "date",
-               values_to = "N") %>% 
+data_long <- NULL
   # reformat date
-  mutate(date = mdy(date))
+  # 
 
 head(data_long)
 ```
@@ -103,11 +93,9 @@ so our results are more comparable.
 ```{r count_day}
 min_N <- 100
 
-data_plot <- data_long %>% 
-  filter(N >= min_N) %>% 
+data_plot <- NULL
   # group by country
-  group_by(country) %>% 
-  mutate(day = seq_along(date))
+  #
 
 head(data_plot)
 ```
@@ -134,22 +122,23 @@ Now that we have a plan, it's time to get back to work!
 
 ```{r plot}
 ggplot(
-  data = data_plot,
+  data = NULL,
   mapping = aes(
-    x = day,
-    y = N,
-    color = country,
-    label = country,
-    group = country)
+    x = NULL,
+    y = NULL,
+    color = NULL,
+    label = NULL,
+    group = NULL
+    )
   ) +
   # create line chart
-  geom_line() +
+  NULL +
   # create scatter plot
-  geom_point() +
+  NULL +
   # add country label
-  geom_text(data = . %>% group_by(country) %>% filter(day == max(day))) +
+  NULL +
   # tranform y-axis to log scale
-  scale_y_continuous(trans = "log2")
+  NULL
 
 ```
 
@@ -158,19 +147,20 @@ ggplot(
 ## Take 2
 ggplot(
   # cut until day 50
-  data = data_plot %>% filter(day <= 50),
+  data = NULL,
   mapping = aes(
-    x = day,
-    y = N,
-    color = country,
-    label = country,
-    group = country)
+    x = NULL,
+    y = NULL,
+    color = NULL,
+    label = NULL,
+    group = NULL
+    )
   ) +
   # make the line and point smaller
-  geom_line(size = 0.4, show.legend = F) +
-  geom_point(size = 0.3) +
+  geom_line(NULL) +
+  geom_point(NULL) +
   # add country label
-  geom_text(data = . %>% group_by(country) %>% filter(day == max(day)),
+  geom_text(NULL,
             # adjust label position
             hjust = 0, nudge_x = 0.5,
             # make smaller text
@@ -178,14 +168,16 @@ ggplot(
             ) +
   # Y-axis
   scale_y_continuous(
+    # transform to log base 2 scale
     trans = "log2",
-    # adjust breaks
+    # adjust breaks for multiplicative value: 1,2,5,10,20,50,100,200,500,...
     breaks = c(c(1,2,5)%o% 10^(0:5)),
-    # format breaks
+    # format label for breaks
     labels = scales::number_format(accuracy = 1)
     ) +
   # X-Axis
   scale_x_continuous(
+    # adjust breaks: 0, 10, 20, 30, ...
     breaks = seq(0,100,10)
   ) +
   # Change X-Axis, Y-Axis, Title label
@@ -196,16 +188,16 @@ ggplot(
   ) +
   # Turn off clipping
   coord_cartesian(clip = "off") +
-  # change overall looks
+  # change overall theme and font size
   theme_minimal(base_size = 10) +
   # change background 
   theme(
     # hide legend
-    legend.position = "none",
+    NULL,
     # adjust plot margin
-    plot.margin = margin(t=5, r=20, b= 5, l =5),
+    NULL,
     # adjust title
-    plot.title = element_text(face = "bold", size = 12)
+    NULL
   )
 
   
@@ -219,21 +211,21 @@ library(ggthemes)
 
 ggplot(
   # cut until day 50
-  data = data_plot %>% filter(day <= 50),
+  data = NULL,
   mapping = aes(
-    x = day,
-    y = N,
-    color = country,
-    label = country,
-    group = country,
-    fill = country)
+    x = NULL,
+    y = NULL,
+    color = NULL,
+    label = NULL,
+    group = NULL,
+    fill = NULL)
   ) +
   # make the line and point smaller
-  geom_line(size = 0.4, show.legend = F) +
-  geom_point(size = 0.3) +
+  geom_line(NULL) +
+  geom_point(NULL) +
   # add country label
   geom_label_repel(
-    data = . %>% group_by(country) %>% filter(day == max(day)),
+    data = NULL,
     # adjust label position
     hjust = 0, nudge_x = 0.5,
     colour = "white", alpha = 0.95,
@@ -242,7 +234,7 @@ ggplot(
     size = 3 ) +
   # highlight last day
   geom_point(
-    data = . %>% filter(day == max(day)),
+    data = NULL,
     shape = 23, size = 1.1) +
   # change colour
   scale_colour_tableau(palette = "Tableau 20") +
@@ -277,10 +269,11 @@ ggplot(
     plot.margin = margin(t=5, r=20, b= 5, l =5),
     # remove minor grid
     panel.grid.minor = element_blank(),
-    # adjust title
+    # adjust title and axis
     text = element_text(color = "grey23"),
     plot.title = element_text(face = "bold", size = 16),
     axis.title = element_text(face = "bold"),
+    # Change background color
     plot.background = element_rect(fill = "#fff1e5")
   )
 
@@ -289,7 +282,7 @@ ggplot(
 ### Saving plots
 ```{r save}
 # by default ggsave will save the last generated plot
-ggsave("my_beautiful_plot.png",
-       width = 8,
-       height = 5)
+# ggsave("my_beautiful_plot.png",
+#        width = 8,
+#        height = 5)
 ```
