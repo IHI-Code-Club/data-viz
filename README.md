@@ -23,8 +23,8 @@ and `workspace/data-vis.html` (pre-rendered HTML file - download the raw and ope
 
 Please click the following button if you like to use a web version of JupyterLab or RStudio with dependencies installed via [Binder](https://mybinder.readthedocs.io/en/latest/index.html)
 
-[![Binder-JupyterLab](https://img.shields.io/badge/binder-JupyterLab-orange)](https://mybinder.org/v2/gh/IHI-Code-Club/data-viz/binder?urlpath=lab)
-[![Binder-RStudio](https://img.shields.io/badge/binder-RStudio-blue)](https://mybinder.org/v2/gh/IHI-Code-Club/Rmarkdown/data-viz?urlpath=rstudio)
+[![Binder-JupyterLab](https://img.shields.io/badge/binder-JupyterLab-orange)](https://mybinder.org/v2/gh/IHI-Code-Club/data-viz/master?urlpath=lab)
+[![Binder-RStudio](https://img.shields.io/badge/binder-RStudio-blue)](https://mybinder.org/v2/gh/IHI-Code-Club/data-viz/master?urlpath=rstudio)
 
 
 ---
