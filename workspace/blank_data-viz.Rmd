@@ -190,14 +190,11 @@ ggplot(
   coord_cartesian(clip = "off") +
   # change overall theme and font size
   theme_minimal(base_size = 10) +
-  # change background 
+  # change background
   theme(
     # hide legend
-    NULL,
     # adjust plot margin
-    NULL,
     # adjust title
-    NULL
   )
 
   
@@ -261,7 +258,7 @@ ggplot(
   coord_cartesian(clip = "off") +
   # change overall looks
   theme_ipsum(base_size = 10) +
-  # change background 
+  # change background
   theme(
     # hide legend
     legend.position = "none",
